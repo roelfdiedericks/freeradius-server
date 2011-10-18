@@ -33,7 +33,7 @@ Typical json string that is sent:
 It then waits for a response from the gearman client, decodes the json, 
 and replaces the original 'request', 'control' and 'reply' structures as it 
 finds them in the response from gearman client. Note that the only response
-elements datatypes that can be handled are strings, integers our doubles, and
+elements datatypes that can be handled are strings, integers or doubles, and
 obviously arrays of these.
 
 rlm_gearman deals with multivalue attributes the same way as the rlm_perl does,
