@@ -30,9 +30,9 @@ Typical json string that is sent:
 	"reply": { } 
 }
 
-It then waits for a response from the gearman socket, decodes the json, 
+It then waits for a response from the gearman client, decodes the json, 
 and replaces the original 'request', 'control' and 'reply' structures as it 
-finds them in the response from gearman socket. Note that the only response
+finds them in the response from gearman client. Note that the only response
 elements datatypes that can be handled are strings, integers our doubles, and
 obviously arrays of these.
 
@@ -78,7 +78,8 @@ Performance
 Performance is good. On my system with the 'files' method of auth only, freeradius
 does 10 000 requests per second. This is the best case scenario.
 
+rlm_gearman does >5000 requests per second
 
-All tests were performed with radperf.
+Twere performed with radperf.
 
 
