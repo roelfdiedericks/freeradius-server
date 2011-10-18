@@ -1,0 +1,84 @@
+2011-10-17
+Author: Roelf Diedericks <roelf@neology.co.za>
+
+rlm_gearman is a thread safe freeradius-to-gearman bridge 
+
+Module Requirements
+------------
+ - The json-c library (libjson0-dev on debian)
+ - The libgearman4 library (0.23 or better)
+
+Theory of Operation
+--------------------
+rlm_gearman is configured with a series of gearman jobserver locations.
+For FreeRADIUS each function, such as "authenticate", "accounting" etc
+a gearman job queue has to be configured. If gearman jobqueue for a specific
+call is not defined, nothing happens.
+
+rlm_gearman simply converts the 'request', 'control' and 'reply' structures 
+of a freeradius request to json, and creates a gearman job for it
+
+Typical json string that is sent:
+
+{ 	"type": "authorize", 
+	"control": { "FreeRADIUS-Client-IP-Address": "127.0.0.1" }, 
+	"request": { 	"User-Name": "joe@joe.com", 
+					"User-Password": "foo", 
+					"NAS-IP-Address": "1.2.3.4", 
+					"NAS-Identifier": "test", 
+					"NAS-Port-Id": "1" }, 
+	"reply": { } 
+}
+
+It then waits for a response from the gearman socket, decodes the json, 
+and replaces the original 'request', 'control' and 'reply' structures as it 
+finds them in the response from gearman socket. Note that the only response
+elements datatypes that can be handled are strings, integers our doubles, and
+obviously arrays of these.
+
+rlm_gearman deals with multivalue attributes the same way as the rlm_perl does,
+by creating a single attribute, with multiple values stored inside the json hash
+in an array
+
+
+Example module configuration
+----------------------------
+gearman {
+    servers=127.0.0.1
+    conns=100
+    func_authenticate="gear_authenticate"
+    func_authorize="gear_authorize"
+    func_post_auth="gear_postauth"
+    func_preacct="gear_preacct"
+    func_accounting="gear_accounting"
+    func_checksimul="gear_checksimul"
+    func_pre_proxy="gear_pre_proxy"
+    func_post_proxy="gear_post_proxy"
+    func_recv_coa="gear_recv_coa"
+    func_send_coa="gear_send_coa"
+}
+Usage
+----
+You can place a "gearman" module incantation anywhere in your freeradius configuration
+where you would normally use the "files" or "sql" modules to do lookups, or other
+actions.
+
+The module will then invoke the gearman function for the configured section.
+
+
+Example code
+------------
+The included example gearman worker requires the native gearman pecl extension 
+available from http://pecl.php.net/get/gearman-0.7.0.tgz
+
+An alternative is to use the pure PHP based Net_Gearman module available on PEAR.
+
+Performance
+-----------
+Performance is good. On my system with the 'files' method of auth only, freeradius
+does 10 000 requests per second. This is the best case scenario.
+
+
+All tests were performed with radperf.
+
+
